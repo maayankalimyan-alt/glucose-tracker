@@ -1,6 +1,6 @@
 // Offline support: the app keeps working without internet once it has been opened.
-const CACHE = 'glucose-tracker-v3';
-const SHELL = ['./', './index.html', './assets/app.js', './assets/index.css', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
+const CACHE = 'glucose-tracker-v4';
+const SHELL = ['./', './index.html', './app.js', './index.css', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
