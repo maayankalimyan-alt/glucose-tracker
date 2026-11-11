@@ -1,9 +1,9 @@
 // Offline support: the app keeps working without internet once it has been opened.
-const CACHE = 'glucose-tracker-v4';
+const CACHE = 'glucose-tracker-v5';
 const SHELL = ['./', './index.html', './app.js', './index.css', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  event.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL.map(u => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', event => {
@@ -22,17 +22,18 @@ self.addEventListener('fetch', event => {
   // Pages: try the network first (to get updates), fall back to the saved copy offline
   if (req.mode === 'navigate') {
     event.respondWith(
-      fetch(req)
+      fetch(req, { cache: 'no-cache' })
         .then(res => { const copy = res.clone(); caches.open(CACHE).then(c => c.put('./index.html', copy)); return res; })
         .catch(() => caches.match('./index.html'))
     );
     return;
   }
 
-  // App files: use the network when online (so updates arrive), the saved copy when offline
+  // App files: always check the server for a newer version when online (no-cache skips the
+  // browser's 10-minute copy), and use the saved copy when offline
   if (url.origin === self.location.origin) {
     event.respondWith(
-      fetch(req)
+      fetch(req, { cache: 'no-cache' })
         .then(res => { if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(req, copy)); } return res; })
         .catch(() => caches.match(req))
     );
